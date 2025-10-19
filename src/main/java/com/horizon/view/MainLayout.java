@@ -20,6 +20,7 @@ public class MainLayout extends AppLayout {
         logo.addClassNames("text-l", "m-m");
 
         Button logoutButton = new Button("Logout", click -> {
+            getUI().ifPresent(ui -> ui.getPage().executeJs("localStorage.removeItem('jwt_token');"));
             SecurityContextHolder.clearContext();
             VaadinServletRequest.getCurrent().getHttpServletRequest().getSession(false).invalidate();
             getUI().ifPresent(ui -> ui.getPage().setLocation("/login"));
