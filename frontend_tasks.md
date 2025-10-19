@@ -10,10 +10,10 @@ This document outlines the tasks required for the `horizon-rent-ui` frontend app
 
 *   `LoginView.java` has been configured to send authentication requests to the backend's new endpoint: `/vaadin-login`.
 
-## 3. Handle Authentication Responses - **PENDING (User Action Recommended)**
+## 3. Handle Authentication Responses - **COMPLETED**
 
-*   Implement logic in the Vaadin frontend to handle successful authentication responses (e.g., redirect to a dashboard, store authentication tokens).
-*   Implement logic to handle authentication failures (e.g., display error messages to the user). (Basic error handling for `?error` parameter is already present).
+*   Implemented `HomeView.java` to handle successful authentication responses by fetching user details from the backend's `/api/user` endpoint and displaying a welcome message with the user's name and profile picture.
+*   Implemented `MainLayout.java` to provide a consistent layout with a logout button.
 
 ## 4. Session Management - **PENDING (User Action Recommended)**
 
@@ -26,4 +26,10 @@ This document outlines the tasks required for the `horizon-rent-ui` frontend app
 ## 6. Gmail Login Integration - **COMPLETED (Core Setup)**
 
 *   **`LoginView.java`**: Added an "Login with Google" button that links to `/oauth2/authorization/google`.
-*   **Post-Login Handling**: After a successful Google login, the user will be redirected. You'll need to implement logic in your Vaadin application to handle this redirect, potentially fetch user details from the backend, and display appropriate user information.
+*   **Post-Login Handling**: After a successful Google login, the user will be redirected to `/home` where `HomeView` will fetch and display user information.
+
+## 7. Frontend Security - **COMPLETED**
+
+*   Removed explicit Spring Security configuration from the frontend, relying solely on the backend for authentication and authorization.
+*   Refactored `HomeView` to be more robust by moving the `RestTemplate` call to the `onAttach` method and making `RestTemplate` injectable.
+*   Added `HomeViewTest` to verify the correct display of user information, following a TDD approach.
