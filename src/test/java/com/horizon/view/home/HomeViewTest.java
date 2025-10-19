@@ -8,6 +8,8 @@ import com.vaadin.flow.component.page.PendingJavaScriptResult;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
+import elemental.json.Json;
+import elemental.json.JsonValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,7 +56,6 @@ public class HomeViewTest {
     public void setup() {
         UI.setCurrent(ui);
         when(ui.getPage()).thenReturn(page);
-        when(ui.getSession()).thenReturn(vaadinSession);
         homeView = new HomeView(backendUrl, restTemplate);
     }
 
@@ -69,10 +70,10 @@ public class HomeViewTest {
         PendingJavaScriptResult jsResult = mock(PendingJavaScriptResult.class);
         when(page.executeJs(eq("return localStorage.getItem('jwt_token');"))).thenReturn(jsResult);
         doAnswer(invocation -> {
-            com.vaadin.flow.function.SerializableFunction<com.vaadin.flow.dom.JsonValue, Void> callback = invocation.getArgument(1);
-            callback.apply(com.vaadin.flow.dom.Json.create(jwtToken));
+            com.vaadin.flow.function.SerializableConsumer<String> callback = invocation.getArgument(1);
+            callback.accept(jwtToken);
             return null;
-        }).when(jsResult).then(eq(String.class), any());
+        }).when(jsResult).then(eq(String.class), any(com.vaadin.flow.function.SerializableConsumer.class));
 
         when(restTemplate.exchange(eq(backendUrl + "/api/user"), eq(HttpMethod.GET), any(HttpEntity.class), eq(Map.class)))
                 .thenReturn(ResponseEntity.ok(user));
