@@ -15,6 +15,7 @@ This document outlines the tasks performed to integrate the `horizon-rent-ui` fr
 *   `LoginView.java` now handles the JWT token returned by the backend upon successful authentication.
 *   The JWT token is stored in the browser's local storage.
 *   The user is redirected to the `/home` view after successful login.
+*   The `LoginView` now parses the JSON error response from the backend and displays the error message to the user.
 
 ## 4. Session Management - **COMPLETED**
 
@@ -33,9 +34,12 @@ This document outlines the tasks performed to integrate the `horizon-rent-ui` fr
 *   The frontend relies on the backend for authentication and authorization.
 *   The `HomeView` is a protected route that can only be accessed by authenticated users.
 
+## 8. User Experience - **COMPLETED**
+
+*   The login form now provides specific error messages from the backend.
+
 ## Next Steps
 
 *   **Implement a way to include the JWT token in all requests to the backend.** This can be done by creating a custom `RestTemplate` interceptor or by using a library that handles this automatically.
 *   **Implement a logout functionality.** This should remove the JWT token from the local storage and redirect the user to the login page.
 *   **Handle token expiration.** Implement a mechanism to detect when the JWT token has expired and prompt the user to log in again.
-*   **Improve the user experience.** Provide feedback to the user during the login process (e.g., show a loading indicator) and display error messages in a more user-friendly way.

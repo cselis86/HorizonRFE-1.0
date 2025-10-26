@@ -1,11 +1,11 @@
 package com.horizon.view;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.login.LoginForm;
+import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -26,9 +27,10 @@ import java.util.Map;
 @PageTitle("Login | Horizon Rent")
 public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
-    protected final LoginForm login = new LoginForm();
+    LoginForm login = new LoginForm();
     private final String backendUrl;
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public LoginView(@Value("${app.backend.url}") String backendUrl, RestTemplate restTemplate) {
         this.backendUrl = backendUrl;
@@ -42,10 +44,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         login.setAction(null);
         login.addLoginListener(event -> authenticate(event.getUsername(), event.getPassword()));
 
-        Anchor googleLoginButton = new Anchor(backendUrl + "/oauth2/authorization/google", "Login with Google");
-        googleLoginButton.getElement().setAttribute("router-ignore", true);
-
-        add(new H1("Horizon Rent"), login, googleLoginButton);
+        add(new H1("Horizon Rent"), login);
     }
 
     protected void authenticate(String username, String password) {
@@ -70,7 +69,25 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
             } else {
                 login.setError(true);
             }
+        } catch (HttpClientErrorException e) {
+            try {
+                Map<String, String> errorResponse = objectMapper.readValue(e.getResponseBodyAsString(), Map.class);
+                LoginI18n i18n = LoginI18n.createDefault();
+                i18n.getErrorMessage().setTitle("Login failed");
+                i18n.getErrorMessage().setMessage(errorResponse.get("message"));
+                login.setI18n(i18n);
+            } catch (JsonProcessingException ex) {
+                LoginI18n i18n = LoginI18n.createDefault();
+                i18n.getErrorMessage().setTitle("Login failed");
+                i18n.getErrorMessage().setMessage("An unexpected error occurred.");
+                login.setI18n(i18n);
+            }
+            login.setError(true);
         } catch (Exception e) {
+            LoginI18n i18n = LoginI18n.createDefault();
+            i18n.getErrorMessage().setTitle("Login failed");
+            i18n.getErrorMessage().setMessage("An unexpected error occurred.");
+            login.setI18n(i18n);
             login.setError(true);
             e.printStackTrace();
         }

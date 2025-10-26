@@ -1,6 +1,8 @@
 package com.horizon.view;
 
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.login.LoginForm;
+import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.Location;
@@ -11,12 +13,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
@@ -102,5 +107,31 @@ public class LoginViewTest {
         // Assuming isError() is false by default or reset
         // We can't directly assert isError() is false without a setter or direct access
         // For now, we'll just ensure no exception is thrown.
+    }
+
+    @Test
+    public void testLogin_failedAuthentication_displaysErrorMessage() {
+        // Given
+        LoginForm spyLoginForm = spy(loginView.login);
+        loginView.login = spyLoginForm;
+
+        String username = "testuser";
+        String password = "wrongpassword";
+        String errorMessage = "Invalid credentials";
+        String errorResponse = "{\"message\": \"" + errorMessage + "\"}";
+
+        HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.UNAUTHORIZED, "Unauthorized", errorResponse.getBytes(), null);
+
+        when(restTemplate.postForObject(eq(backendUrl + "/auth/login"), any(HttpEntity.class), eq(Map.class)))
+                .thenThrow(exception);
+
+        // When
+        loginView.authenticate(username, password);
+
+        // Then
+        ArgumentCaptor<LoginI18n> i18nCaptor = ArgumentCaptor.forClass(LoginI18n.class);
+        verify(spyLoginForm).setI18n(i18nCaptor.capture());
+        assertEquals(errorMessage, i18nCaptor.getValue().getErrorMessage().getMessage());
+        assertTrue(spyLoginForm.isError());
     }
 }
